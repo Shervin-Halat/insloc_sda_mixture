@@ -12,7 +12,6 @@ from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from ..losses import accuracy
 from .base import BaseDetector
 
-
 @torch.no_grad()
 def concat_all_gather(tensor):
     """
@@ -304,19 +303,22 @@ class InsLocFPN(BaseDetector):
             # shuffle for making use of BN
             shuffle_idx = 'idx' in self.shuffle_data
             shuffle_bbox = 'bbox' in self.shuffle_data
-            img_k, shuffle_gt_labels_k, shuffle_gt_bboxes_k, idx_unshuffle = self._batch_shuffle_ddp(
-                img_k, gt_labels_k if shuffle_idx else None,
-                gt_bboxes_k if shuffle_bbox else None)
+            # img_k, shuffle_gt_labels_k, shuffle_gt_bboxes_k, idx_unshuffle = self._batch_shuffle_ddp(                         #######################
+            #     img_k, gt_labels_k if shuffle_idx else None,
+            #     gt_bboxes_k if shuffle_bbox else None)
 
-            if shuffle_idx:
-                gt_labels_k = [each for each in shuffle_gt_labels_k]
-            else:
-                gt_labels_k = [each for each in gt_labels_k]
+            # if shuffle_idx:                                                                                                    ######################
+            #     gt_labels_k = [each for each in shuffle_gt_labels_k]
+            # else:
+            #     gt_labels_k = [each for each in gt_labels_k]
 
-            if shuffle_bbox:
-                gt_bboxes_k = [each for each in shuffle_gt_bboxes_k]
-            else:
-                gt_bboxes_k = [each for each in gt_bboxes_k]
+            # if shuffle_bbox:
+            #     gt_bboxes_k = [each for each in shuffle_gt_bboxes_k]
+            # else:
+            #     gt_bboxes_k = [each for each in gt_bboxes_k]
+
+            gt_bboxes_k = [each for each in gt_bboxes_k]
+            gt_labels_k = [each for each in gt_labels_k]
 
             logits_k = self.fwd(
                 img=img_k,
@@ -332,8 +334,8 @@ class InsLocFPN(BaseDetector):
             logits_k = nn.functional.normalize(logits_k, dim=1)
             logits_k = logits_k.view(batch_size, num_feat_levels, -1)
             # undo shuffle
-            logits_k = self._batch_unshuffle_ddp(logits_k, idx_unshuffle).view(
-                batch_size, num_feat_levels, -1)
+            # logits_k = self._batch_unshuffle_ddp(logits_k, idx_unshuffle).view(                                               #########################
+            #     batch_size, num_feat_levels, -1)
             if self.num_pos_per_instance > 1:
                 batch_size_k = logits_k.shape[0]
                 batch_size_q = logits_q.shape[0]
@@ -386,12 +388,13 @@ class InsLocFPN(BaseDetector):
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         # gather keys before updating queue
-        keys = concat_all_gather(keys)
+        # keys = concat_all_gather(keys)                                                                    ######################################
 
         batch_size = keys.shape[0]
 
         ptr = int(self.queue_ptr)
-        assert self.K % batch_size == 0  # for simplicity
+        # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
+        assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity                       
 
         self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
         ptr = (ptr + batch_size) % self.K  # move pointer
@@ -406,10 +409,10 @@ class InsLocFPN(BaseDetector):
         """
         # gather from all gpus
         batch_size_this = x.shape[0]
-        x_gather = concat_all_gather(x)
+        x_gather = concat_all_gather(x)                                                                                         
 
         if y is not None:
-            y_gather = concat_all_gather(y)
+            y_gather = concat_all_gather(y)                                                                                       
             assert (y_gather.shape[0] == x_gather.shape[0])
         else:
             y_gather = None

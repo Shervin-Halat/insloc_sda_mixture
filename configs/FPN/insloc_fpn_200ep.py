@@ -1,6 +1,7 @@
 # Data cfg
 dataset_type = 'ImageNetDataset'
-data_root = 'your_data_path/imagenet/train'  # data path
+# data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample'  # data path  ####################
+data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample/'
 
 base_scale = (256, 256)
 fore_scale = (128, 255)
@@ -24,11 +25,14 @@ train_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=32,
+    # samples_per_gpu=32,                                                                                           ########################
+    samples_per_gpu=2,
+    # workers_per_gpu=4,                                                                                               #######################
     workers_per_gpu=4,
     train=dict(
         type=dataset_type,
-        ann_file='your_annotation_path/train.txt',  # anno file
+        # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file  ##############
+        ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
         img_prefix=data_root,
         preprocess=preprocess_pipeline,
         pipeline=train_pipeline))
@@ -45,7 +49,8 @@ model = dict(
     level_loss_weights=[1.0, 1.0, 1.0, 1.0],
     box_replaced_with_gt=[True, True, True,
                           False],  # Means the box aug is only applied on P5
-    momentum_cfg=dict(dim=128, K=65536, m=0.999, T=0.2),
+    # momentum_cfg=dict(dim=128, K=65536, m=0.999, T=0.2),                                                      ######################
+    momentum_cfg=dict(dim=128, K=2, m=0.999, T=0.2),
     backbone=dict(
         type='ResNet',
         depth=50,
@@ -112,7 +117,8 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='CosineAnealing', min_lr=0.0, by_epoch=True)
-total_epochs = 200
+# total_epochs = 200                                                                                ###########################################
+total_epochs = 1
 checkpoint_config = dict(interval=5)
 log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
