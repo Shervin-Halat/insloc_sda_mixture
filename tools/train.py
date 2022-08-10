@@ -19,7 +19,8 @@ from mmdet.utils import collect_env, get_root_logger
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
-    parser.add_argument('config', help='train config file path')
+    # parser.add_argument('--config', default= '/home/lshervnl/test3/InstanceLoc/configs/FPN/insloc_fpn_200ep.py' , help='train config file path') #####
+    parser.add_argument('--config', default= '/home/lshervnl/test3/InstanceLoc/configs/FPN/insloc_fpn_200ep.py' , help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
