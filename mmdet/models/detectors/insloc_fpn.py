@@ -12,6 +12,8 @@ from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from ..losses import accuracy
 from .base import BaseDetector
 
+from supplementary_modules.supplementary import *                         ###################
+
 @torch.no_grad()
 def concat_all_gather(tensor):
     """
@@ -74,6 +76,31 @@ class InsLocFPN(BaseDetector):
         self.init_weights(pretrained=pretrained)
         self.create_momentum(momentum_cfg)
 
+
+        self.selective_attention_0 = selective_attention(0)         ########
+        self.selective_attention_1 = selective_attention(1)         ########
+        self.selective_attention_2 = selective_attention(2)         ########
+        self.selective_attention_3 = selective_attention(3)         ########
+        self.selective_attention_4 = selective_attention(4)         ########
+
+'''
+    def enhance_feature(self,inputs):                           ########
+        output = []
+        output_0 = self.selective_attention_0(inputs)
+        output_1 = self.selective_attention_1(inputs)
+        output_2 = self.selective_attention_2(inputs)
+        output_3 = self.selective_attention_3(inputs)
+        output_4 = self.selective_attention_4(inputs)
+        output.append(output_0)
+        output.append(output_1)
+        output.append(output_2)
+        output.append(output_3)
+        output.append(output_4)
+        
+        return tuple(output)
+'''
+
+        
     def create_momentum(
         self,
         momentum_cfg,

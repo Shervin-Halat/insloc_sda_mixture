@@ -81,6 +81,9 @@ class ImageNetDataset(Dataset):
         results = dict(img_info=base_info, instance_info=instance_info)
         results['ins_idx'] = instance_idx
 
+        # qq3 = np.array(results1['img'].data.reshape(256,256,3))                   ######################################
+        # np.save('/mnt/c/Users/sherw/OneDrive/Desktop/temp/test3.npy',qq3)         ######################################
+
         # Copy and paste foreground image onto two background images
         results0, results1 = self.preprocess_pipeline(results)
 
