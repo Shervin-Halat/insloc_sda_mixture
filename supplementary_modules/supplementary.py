@@ -1,26 +1,26 @@
-from __future__ import division
+# from __future__ import division
 
-import torch
+# import torch
 import torch.nn as nn
 
-from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
-                        build_sampler, merge_aug_bboxes, merge_aug_masks,
-                        multiclass_nms)
-from .. import builder
-from ..registry import DETECTORS
-from .base import BaseDetector
-from .test_mixins import RPNTestMixin
+# from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
+#                         build_sampler, merge_aug_bboxes, merge_aug_masks,
+#                         multiclass_nms)
+# from .. import builder
+# from ..registry import DETECTORS
+# from .base import BaseDetector
+# from .test_mixins import RPNTestMixin
 import torch.nn.functional as F
 import torch
 import numpy as np
 from PIL import Image
 import os
-from mmdet.ops import ConvModule, NonLocal2D, ContextBlock
+from mmdet.ops.context_block import ContextBlock        ###################
 
 class channel_attention(nn.Module):
     def __init__(self):
         super(channel_attention,self).__init__()
-        M = 5
+        M = 4
         d = 128
         self.gap = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Sequential(nn.Conv2d(256, d, kernel_size=1, stride=1, bias=False),
@@ -39,6 +39,7 @@ class channel_attention(nn.Module):
         feats_Z = self.fc(feats_S)
         attention_vectors = [fc(feats_Z) for fc in self.fcs]
         attention_vectors = torch.cat(attention_vectors,dim=1)
+
         attention_vectors = attention_vectors.view(-1, num_levels, 256, 1, 1)
         attention_vectors = self.softmax(attention_vectors)
         return attention_vectors
@@ -46,7 +47,7 @@ class channel_attention(nn.Module):
 class spatial_attention(nn.Module):
     def __init__(self, kernel_size=7):
         super(spatial_attention,self).__init__()
-        M = 5
+        M = 4
         d = 128
         padding = 3 if kernel_size == 7 else 1
         self.conv = nn.ModuleList([])

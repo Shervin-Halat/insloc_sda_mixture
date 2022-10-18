@@ -5,7 +5,7 @@ import os.path as osp
 import time
 
 import mmcv
-import numpy as np
+import numpy as np  
 import torch
 from mmcv import Config, DictAction
 from mmcv.runner import init_dist
