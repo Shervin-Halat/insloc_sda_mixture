@@ -15,15 +15,31 @@ from .builder import DATASETS, PIPELINES
 from .pipelines import Compose
 
 
+
+the_filename = '/mnt/e/Data/test/Generated/packed_generated_images'               #######                             
+with open(the_filename, 'rb') as f:                                         #######
+    packed_generated_images = pickle.load(f)                                       #######
+
+
+
 @DATASETS.register_module()
 class ImageNetDataset(Dataset):
     CLASSES = None
+
+    # def __init__(                         #####
+    #     self,
+    #     ann_file,
+    #     pipeline,
+    #     preprocess,                       #####
+    #     data_root=None,
+    #     img_prefix='',
+    #     seg_prefix=None,
+    # ):
 
     def __init__(
         self,
         ann_file,
         pipeline,
-        preprocess,
         data_root=None,
         img_prefix='',
         seg_prefix=None,
@@ -36,7 +52,7 @@ class ImageNetDataset(Dataset):
         self.data_infos = self.load_annotations(ann_file)
         self.flag = np.ones(len(self), dtype=np.uint8)
 
-        self.preprocess_pipeline = build_from_cfg(preprocess, PIPELINES)
+        # self.preprocess_pipeline = build_from_cfg(preprocess, PIPELINES)
         self.pipeline = Compose(pipeline)
 
     def __len__(self):
@@ -60,32 +76,44 @@ class ImageNetDataset(Dataset):
         results['mask_fields'] = []
         results['seg_fields'] = []
 
-    def __getitem__(self, idx):
-        return self.prepare_train_img(idx)
+    # def __getitem__(self, idx):                   ######
+    #     return self.prepare_train_img(idx)        ######
 
-    def prepare_train_img(self, idx):
+    def __getitem__(self):                     ######
+        return self.prepare_train_img()          ######
+
+
+    def prepare_train_img(self):
         # Randomly choose a background image from the whole dataset
-        base_idx = int(np.random.randint(0, len(self.data_infos), 1))
-        base_info = self.data_infos[base_idx]
+        # base_idx = int(np.random.randint(0, len(self.data_infos), 1))
+        # base_info = self.data_infos[base_idx]
 
-        base_idx2 = int(np.random.randint(0, len(self.data_infos), 1))
-        base_info2 = self.data_infos[base_idx2]
-        base_info = [base_info, base_info2]
+        # base_idx2 = int(np.random.randint(0, len(self.data_infos), 1))
+        # base_info2 = self.data_infos[base_idx2]
+        # base_info = [base_info, base_info2]
 
         # Load the current image as the foreground image
-        current_info = self.data_infos[idx]
-        instance_info = [current_info]
-        instance_idx = [idx]
+        # current_info = self.data_infos[idx]                                      #######
+        # instance_info = [current_info]
+        # instance_idx = [idx]
+
+        while True:                                                                             #######
+            rand_instance_idx = random.randint(0,len(packed_generated_images)-1)
+            if len(packed_generated_images[rand_instance_idx]) >= 1:
+                break
+
+        results0, results1 = random.choice(packed_generated_images[rand_instance_idx])
+
 
         # Compose data
-        results = dict(img_info=base_info, instance_info=instance_info)
-        results['ins_idx'] = instance_idx
+        # results = dict(img_info=base_info, instance_info=instance_info)           ####
+        # results['ins_idx'] = instance_idx                                         ####
 
         # qq3 = np.array(results1['img'].data.reshape(256,256,3))                   ######################################
         # np.save('/mnt/c/Users/sherw/OneDrive/Desktop/temp/test3.npy',qq3)         ######################################
 
         # Copy and paste foreground image onto two background images
-        results0, results1 = self.preprocess_pipeline(results)
+        # results0, results1 = self.preprocess_pipeline(results)                    #######
 
         # Augment two synthetic images
         results = self.pipeline(results0)

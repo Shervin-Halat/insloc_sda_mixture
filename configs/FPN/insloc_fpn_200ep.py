@@ -1,20 +1,23 @@
 # Data cfg
 dataset_type = 'ImageNetDataset'
 # data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample'  # data path  ####################
-data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample/'
+# data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample/'
+data_root = '/mnt/e/Data/test/Backgrounds'
 
 base_scale = (256, 256)
 fore_scale = (128, 255)
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=False)
-preprocess_pipeline = dict(
-    type='CopyAndPaste',
-    feed_bytes=False,
-    base_scale=base_scale,
-    ratio=(0.5, 2.0),
-    w_range=fore_scale,
-    h_range=fore_scale,
-)
+
+
+# preprocess_pipeline = dict(                               #####
+#     type='CopyAndPaste',
+#     feed_bytes=False,
+#     base_scale=base_scale,
+#     ratio=(0.5, 2.0),
+#     w_range=fore_scale,
+#     h_range=fore_scale,
+# )
 
 train_pipeline = [
     dict(type='PixelAugPil', to_rgb=True),
@@ -24,6 +27,20 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 
+# data = dict(
+#     # samples_per_gpu=32,                                                                                           ########################
+#     samples_per_gpu=2,
+#     # workers_per_gpu=4,                                                                                               #######################
+#     workers_per_gpu=4,
+#     train=dict(
+#         type=dataset_type,
+#         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file  ##############
+#         ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
+#         img_prefix=data_root,
+#         preprocess=preprocess_pipeline,
+#         pipeline=train_pipeline))
+
+
 data = dict(
     # samples_per_gpu=32,                                                                                           ########################
     samples_per_gpu=2,
@@ -32,9 +49,9 @@ data = dict(
     train=dict(
         type=dataset_type,
         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file  ##############
-        ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
+        # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
+        ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
         img_prefix=data_root,
-        preprocess=preprocess_pipeline,
         pipeline=train_pipeline))
 
 # Model Cfg

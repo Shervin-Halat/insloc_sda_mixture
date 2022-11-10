@@ -13,7 +13,9 @@ from ..losses import accuracy
 from .base import BaseDetector
 
 from supplementary_modules.supplementary import *                         ###################
+from collections import Counter                                           ###################
 
+num_classes = 12                                                      ###############
 
 '''
     def enhance_feature(self,inputs):                           
@@ -128,6 +130,26 @@ class InsLocFPN(BaseDetector):
         self.m = self.momentum_cfg.m
         self.T = self.momentum_cfg.T
         assert (len(self.level_loss_weights) == self.num_levels)
+
+
+
+# #####################################################################################                                                          
+#         if self.momentum_cfg is not None:
+#             queues = []
+#             for i in range(self.num_levels):
+#                 # Create queue
+#                 self.register_buffer(
+#                     "queue",
+#                     torch.randn(self.momentum_cfg.dim, self.momentum_cfg.K))
+#                 self.queue = nn.functional.normalize(self.queue, dim=0)
+#                 self.queue = self.queue.repeat(num_classes,1,1)
+#                 queues.append(self.queue)
+#             self.register_buffer("queues", torch.stack(queues, 0))
+#             #self.queues = torch.stack(queues)
+#             self.register_buffer("queue_ptr", torch.zeros(num_classes, dtype=torch.long))
+
+# #####################################################################################
+
 
         if self.momentum_cfg is not None:
             queues = []
@@ -366,6 +388,7 @@ class InsLocFPN(BaseDetector):
 
             gt_bboxes_k = [each for each in gt_bboxes_k]
             gt_labels_k = [each for each in gt_labels_k]
+            # gt_labels_k = [each-1 for each in gt_labels_k]            ###############
 
             logits_k = self.fwd(
                 img=img_k,
@@ -407,6 +430,14 @@ class InsLocFPN(BaseDetector):
                 self.queues[level_idx].clone().detach()
             ])
 
+
+            #####################################################################
+            # l_neg = torch.einsum('nc,nck->nk', [
+            #     logits_q[:, level_idx, :],
+            #     self.queues[level_idx].clone().detach()[gt_labels_k]
+            # ])
+            #####################################################################
+
             # logits: Nx(1+K)
             logits = torch.cat([l_pos, l_neg], dim=1)
 
@@ -429,6 +460,7 @@ class InsLocFPN(BaseDetector):
 
         # dequeue and enqueue
         self._dequeue_and_enqueue(logits_k)
+        # self._dequeue_and_enqueue(logits_k, gt_labels_k)                  #######
 
         return losses
 
@@ -447,6 +479,29 @@ class InsLocFPN(BaseDetector):
         ptr = (ptr + batch_size) % self.K  # move pointer
 
         self.queue_ptr[0] = ptr
+
+############################################################################
+
+    # def _dequeue_and_enqueue(self, keys, keys_labels):
+    #     # gather keys before updating queue
+    #     # keys = concat_all_gather(keys)                                                                    ######################################
+    
+    #     batch_size = keys.shape[0]
+    #     count_labels = [keys_labels.count(i) for i in range(12)]
+    #     ptr = self.queue_ptr.int()
+    #     # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
+    #     assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity
+    #     for i in range(num_classes):
+    #         keys_to_select = [j for j in range(len(keys_labels)) if keys_labels[j] != i]
+    #         self.queus[:,i,:,(ptr[i]+np.array(range(count_labels[i])))%self.K] = keys.permute(1, 2, 0)[:,:,keys_to_select]
+
+    #     # self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
+
+    #     ptr += torch.tensor(count_labels)
+    #     ptr %= self.K
+    #     self.queue_ptr = ptr
+
+############################################################################
 
     @torch.no_grad()
     def _batch_shuffle_ddp(self, x, y=None, z=None):
