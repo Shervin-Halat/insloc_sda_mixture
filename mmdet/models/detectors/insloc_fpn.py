@@ -389,7 +389,7 @@ class InsLocFPN(BaseDetector):
             #     gt_bboxes_k = [each for each in gt_bboxes_k]
 
             gt_bboxes_k = [each for each in gt_bboxes_k]
-            gt_labels_k = [each for each in gt_labels_k]
+            gt_labels_k = [each -1 for each in gt_labels_k]
             # gt_labels_k = [each-1 for each in gt_labels_k]            ###############
 
             logits_k = self.fwd(
@@ -450,14 +450,15 @@ class InsLocFPN(BaseDetector):
             # plt.show()
             #np.save('/mnt/c/Users/sherw/OneDrive/Desktop/temp/test3.npy',qq3)
 
-            print(logits_q.shape,self.queues.shape,gt_labels_k[0],gt_labels_k[1])
+            # print(logits_q.shape,self.queues.shape,gt_labels_k[0],gt_labels_k[1])
             #####################################################################
             l_neg = torch.einsum('nc,nck->nk', [
                 logits_q[:, level_idx, :],
                 self.queues[level_idx].detach().clone()[gt_labels_k,:,:]
             ])
             #####################################################################
-            print('#################################################################')
+            # print('#################################################################')
+
             # logits: Nx(1+K)
             logits = torch.cat([l_pos, l_neg], dim=1)
             # apply temperature

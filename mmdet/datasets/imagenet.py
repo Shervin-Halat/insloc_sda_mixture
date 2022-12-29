@@ -115,7 +115,7 @@ class ImageNetDataset(Dataset):
         # print(idx)
         with open(rnd_filename, 'rb') as f:
             results0, results1 = pickle.load(f)
-
+        
         # Compose data
         # results = dict(img_info=base_info, instance_info=instance_info)           ####
         # results['ins_idx'] = instance_idx                                         ####
