@@ -2,12 +2,17 @@
 dataset_type = 'ImageNetDataset'
 # data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample'  # data path  ####################
 # data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample/'
-data_root = '/mnt/e/Data/test/Backgrounds'
+# data_root = '/mnt/e/Data/test/Backgrounds'
+data_root = '/mnt/e/Data/test/PackedGenerated(OneListPer)'
+
 
 base_scale = (256, 256)
 fore_scale = (128, 255)
+# img_norm_cfg = dict(                                            ###########
+#     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=False)         ######
+
 img_norm_cfg = dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=False)
+    mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_rgb=True)
 
 
 # preprocess_pipeline = dict(                               #####
@@ -20,9 +25,11 @@ img_norm_cfg = dict(
 # )
 
 train_pipeline = [
-    dict(type='PixelAugPil', to_rgb=True),
-    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(type='Resize', img_scale=(400, 400), keep_ratio=False),         #########
+    # dict(type='PixelAugPil', to_rgb=True),                              ########
+    dict(type='RandomFlip', flip_ratio=0.001),
     dict(type='Normalize', **img_norm_cfg),
+    # dict(type='Pad', size_divisor=32),                                  #########
     dict(type='DefaultFormatBundle', to_tensor=True),
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
@@ -65,12 +72,13 @@ model = dict(
     num_levels=4,
     level_loss_weights=[1.0, 1.0, 1.0, 1.0],
     box_replaced_with_gt=[True, True, True,
-                          False],  # Means the box aug is only applied on P5
+                          True],  # Means the box aug is only applied on P5    #??????
     # momentum_cfg=dict(dim=128, K=65536, m=0.999, T=0.2),                                                      ######################
-    momentum_cfg=dict(dim=128, K=2, m=0.999, T=0.2),
+    momentum_cfg=dict(dim=128, K=6, m=0.999, T=0.2),
     backbone=dict(
         type='ResNet',
-        depth=50,
+        # depth=50,
+        depth=101,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=-1,
@@ -83,8 +91,8 @@ model = dict(
         in_channels=[256, 512, 1024, 2048],
         out_channels=256,
         norm_cfg=norm_cfg,
-        num_outs=4),
-    rpn_head=dict(
+        num_outs=4),                               #????????
+    rpn_head=dict(                                  #???????
         type='AnchorAugHead',
         anchor_generator=dict(
             type='AnchorGenerator',
@@ -125,6 +133,7 @@ train_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=None,
+    fp16 = True,
 )
 test_cfg = dict(rpn=None, rcnn=None)
 
@@ -135,12 +144,15 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='CosineAnealing', min_lr=0.0, by_epoch=True)
 # total_epochs = 200                                                                                ###########################################
-total_epochs = 1
+total_epochs = 2
 checkpoint_config = dict(interval=5)
-log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+#log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])                               ############################
+log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
 gpu_ids = range(0, 1)
+
+# cudnn_benchmark = True          ########################

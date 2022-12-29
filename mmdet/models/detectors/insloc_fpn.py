@@ -96,28 +96,31 @@ class InsLocFPN(BaseDetector):
         self.init_weights(pretrained=pretrained)
         self.create_momentum(momentum_cfg)
 
+###############################################################################################
 
-        self.selective_attention_0 = selective_attention(0)         ########
-        self.selective_attention_1 = selective_attention(1)         ########
-        self.selective_attention_2 = selective_attention(2)         ########
-        self.selective_attention_3 = selective_attention(3)         ########
-        # self.selective_attention_4 = selective_attention(4)         ########
+    #     self.selective_attention_0 = selective_attention(0)         ########
+    #     self.selective_attention_1 = selective_attention(1)         ########
+    #     self.selective_attention_2 = selective_attention(2)         ########
+    #     self.selective_attention_3 = selective_attention(3)         ########
+    #     # self.selective_attention_4 = selective_attention(4)         ########
 
 
-    def enhance_feature(self,inputs):                               ########
-        output = []
-        output_0 = self.selective_attention_0(inputs)
-        output_1 = self.selective_attention_1(inputs)
-        output_2 = self.selective_attention_2(inputs)
-        output_3 = self.selective_attention_3(inputs)
-        # output_4 = self.selective_attention_4(inputs)
-        output.append(output_0)
-        output.append(output_1)
-        output.append(output_2)
-        output.append(output_3)
-        # output.append(output_4)
+    # def enhance_feature(self,inputs):                               ########
+    #     output = []
+    #     output_0 = self.selective_attention_0(inputs)
+    #     output_1 = self.selective_attention_1(inputs)
+    #     output_2 = self.selective_attention_2(inputs)
+    #     output_3 = self.selective_attention_3(inputs)
+    #     # output_4 = self.selective_attention_4(inputs)
+    #     output.append(output_0)
+    #     output.append(output_1)
+    #     output.append(output_2)
+    #     output.append(output_3)
+    #     # output.append(output_4)
         
-        return tuple(output)
+    #     return tuple(output)
+
+###############################################################################################
 
 
         
@@ -134,23 +137,6 @@ class InsLocFPN(BaseDetector):
 
 
 # #####################################################################################                                                          
-#         if self.momentum_cfg is not None:
-#             queues = []
-#             for i in range(self.num_levels):
-#                 # Create queue
-#                 self.register_buffer(
-#                     "queue",
-#                     torch.randn(self.momentum_cfg.dim, self.momentum_cfg.K))
-#                 self.queue = nn.functional.normalize(self.queue, dim=0)
-#                 self.queue = self.queue.repeat(num_classes,1,1)
-#                 queues.append(self.queue)
-#             self.register_buffer("queues", torch.stack(queues, 0))
-#             #self.queues = torch.stack(queues)
-#             self.register_buffer("queue_ptr", torch.zeros(num_classes, dtype=torch.long))
-
-# #####################################################################################
-
-
         if self.momentum_cfg is not None:
             queues = []
             for i in range(self.num_levels):
@@ -159,10 +145,27 @@ class InsLocFPN(BaseDetector):
                     "queue",
                     torch.randn(self.momentum_cfg.dim, self.momentum_cfg.K))
                 self.queue = nn.functional.normalize(self.queue, dim=0)
+                self.queue = self.queue.repeat(num_classes,1,1)
                 queues.append(self.queue)
             self.register_buffer("queues", torch.stack(queues, 0))
             #self.queues = torch.stack(queues)
-            self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+            self.register_buffer("queue_ptr", torch.zeros(num_classes, dtype=torch.long))
+
+# #####################################################################################
+
+
+        # if self.momentum_cfg is not None:
+        #     queues = []
+        #     for i in range(self.num_levels):
+        #         # Create queue
+        #         self.register_buffer(
+        #             "queue",
+        #             torch.randn(self.momentum_cfg.dim, self.momentum_cfg.K))
+        #         self.queue = nn.functional.normalize(self.queue, dim=0)
+        #         queues.append(self.queue)
+        #     self.register_buffer("queues", torch.stack(queues, 0))
+        #     #self.queues = torch.stack(queues)
+        #     self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
         # Create momentum net
         self.generate_momentum_net()
@@ -271,14 +274,13 @@ class InsLocFPN(BaseDetector):
         rpn_head=None,
         query_encoder=False,
     ):
-
         losses = dict()
         x = backbone(img)
 
         if neck is not None:
             x = neck(x)
 
-        x = self.enhance_feature(x)
+        # x = self.enhance_feature(x)                                       #############################
 
         if pool_with_gt:
             proposal_list = gt_bboxes
@@ -424,29 +426,45 @@ class InsLocFPN(BaseDetector):
             l_pos = torch.einsum('nc,nc->n', [
                 logits_q[:, level_idx, :], repeated_logits_k[:, level_idx, :]
             ]).unsqueeze(-1)
-            # negative logits: NxK
-            l_neg = torch.einsum('nc,ck->nk', [
-                logits_q[:, level_idx, :],
-                self.queues[level_idx].clone().detach()
-            ])
 
-
-            #####################################################################
-            # l_neg = torch.einsum('nc,nck->nk', [
+            # # negative logits: NxK
+            # l_neg = torch.einsum('nc,ck->nk', [
             #     logits_q[:, level_idx, :],
-            #     self.queues[level_idx].clone().detach()[gt_labels_k]
+            #     self.queues[level_idx].clone().detach()
             # ])
-            #####################################################################
 
+
+
+            # print('\n','Insloc','\n')
+            # print(gt_labels_k[0],'\n',gt_bboxes[0],img[0].shape,'\n',gt_bboxes_k[0],img_k[0].shape)
+            # print(gt_labels_k[1],'\n',gt_bboxes[1],img[1].shape,'\n',gt_bboxes_k[1],img_k[1].shape)
+            # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+
+
+            # import matplotlib.pyplot as plt                                           ########################################
+            # qq = target_data['img'][1].detach().clone()
+            # qq = np.einsum('ijk->jki', qq)                         
+            # qq = qq.to('cpu')
+            # plt.imshow(q)
+            # plt.show()
+            #np.save('/mnt/c/Users/sherw/OneDrive/Desktop/temp/test3.npy',qq3)
+
+            print(logits_q.shape,self.queues.shape,gt_labels_k[0],gt_labels_k[1])
+            #####################################################################
+            l_neg = torch.einsum('nc,nck->nk', [
+                logits_q[:, level_idx, :],
+                self.queues[level_idx].detach().clone()[gt_labels_k,:,:]
+            ])
+            #####################################################################
+            print('#################################################################')
             # logits: Nx(1+K)
             logits = torch.cat([l_pos, l_neg], dim=1)
-
             # apply temperature
             logits /= self.T
-
+            print(logits)
             # labels: positive key indicators
             labels = torch.zeros(logits.shape[0], dtype=torch.long).cuda()
-
             # ce loss
             loss_cls = self.level_loss_weights[
                 level_idx] * nn.functional.cross_entropy(logits, labels)
@@ -459,47 +477,51 @@ class InsLocFPN(BaseDetector):
             #loss_cls=loss_cls, acc=acc)
 
         # dequeue and enqueue
-        self._dequeue_and_enqueue(logits_k)
-        # self._dequeue_and_enqueue(logits_k, gt_labels_k)                  #######
+        # self._dequeue_and_enqueue(logits_k)
+        self._dequeue_and_enqueue(logits_k, gt_labels_k)                  #######
 
         return losses
 
-    @torch.no_grad()
-    def _dequeue_and_enqueue(self, keys):
-        # gather keys before updating queue
-        # keys = concat_all_gather(keys)                                                                    ######################################
+    # @torch.no_grad()
+    # def _dequeue_and_enqueue(self, keys):
+    #     # gather keys before updating queue
+    #     # keys = concat_all_gather(keys)                                                                    ######################################
 
-        batch_size = keys.shape[0]
+    #     batch_size = keys.shape[0]
 
-        ptr = int(self.queue_ptr)
-        # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
-        assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity                       
+    #     ptr = int(self.queue_ptr)
+    #     # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
+    #     assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity                       
 
-        self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
-        ptr = (ptr + batch_size) % self.K  # move pointer
+    #     self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
+    #     ptr = (ptr + batch_size) % self.K  # move pointer
 
-        self.queue_ptr[0] = ptr
+    #     self.queue_ptr[0] = ptr
 
 ############################################################################
 
-    # def _dequeue_and_enqueue(self, keys, keys_labels):
-    #     # gather keys before updating queue
-    #     # keys = concat_all_gather(keys)                                                                    ######################################
+    def _dequeue_and_enqueue(self, keys, keys_labels):
+        # gather keys before updating queue
+        # keys = concat_all_gather(keys)                                                                    ######################################
     
-    #     batch_size = keys.shape[0]
-    #     count_labels = [keys_labels.count(i) for i in range(12)]
-    #     ptr = self.queue_ptr.int()
-    #     # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
-    #     assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity
-    #     for i in range(num_classes):
-    #         keys_to_select = [j for j in range(len(keys_labels)) if keys_labels[j] != i]
-    #         self.queus[:,i,:,(ptr[i]+np.array(range(count_labels[i])))%self.K] = keys.permute(1, 2, 0)[:,:,keys_to_select]
+        batch_size = keys.shape[0]
+        count_labels = [keys_labels.count(i) for i in range(12)]
+        ptr = self.queue_ptr.int().cpu()
+        # assert self.K % batch_size == 0 # for simplicity                                                   #########################################
+        assert self.K % batch_size == 0 , 'self.K % batch_size != 0' # for simplicity
+        for i in range(num_classes):
+            keys_to_select = [j for j in range(len(keys_labels)) if keys_labels[j] != i]
+            if len(keys_to_select) != 0:
+                self.queues[:,i,:,(ptr[i]+torch.from_numpy(np.array(range(len(keys_to_select)))))%self.K] = keys.permute(1, 2, 0)[:,:,keys_to_select]
+            # self.queues[:,i,:,(ptr[i]+np.array(range(count_labels[i])))%self.K] = keys.permute(1, 2, 0)[:,:,keys_to_select]
 
-    #     # self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
 
-    #     ptr += torch.tensor(count_labels)
-    #     ptr %= self.K
-    #     self.queue_ptr = ptr
+        # self.queues[:, :, ptr:ptr + batch_size] = keys.permute(1, 2, 0)
+
+        ptr += len(keys_labels) - torch.tensor(count_labels)
+        ptr %= self.K
+        self.queue_ptr = ptr
+        self.queue_ptr = self.queue_ptr.to(device = 'cuda')
 
 ############################################################################
 
