@@ -135,19 +135,33 @@ class ImageNetDataset(Dataset):
         # Copy and paste foreground image onto two background images
         # results0, results1 = self.preprocess_pipeline(results)                    #######
 
+        # results0['gt_bboxes'][0][[0, 1, 2, 3]] = results0['gt_bboxes'][0][[1, 0, 3, 2]]
+        # results1['gt_bboxes'][0][[0, 1, 2, 3]] = results1['gt_bboxes'][0][[1, 0, 3, 2]]
 
         # print('\n','imagenet','\n')
         # print(idx)
         # print(results0['gt_labels'])
         # print(results0['gt_bboxes'],results0['img'].data.shape)
         # print(results1['gt_bboxes'],results1['img'].data.shape)
+
+        # import matplotlib.pyplot as plt   
+        # import copy
         
+        # qq = copy.deepcopy(results0)
+        # bb = qq['gt_bboxes'][0].astype('int')
+        # qq = np.array(qq['img'])
+        # cv2.rectangle(qq,(bb[0],bb[1]),(bb[2],bb[3]),(0,0,255),4)
 
         # Augment two synthetic images
         results = self.pipeline(results0)
         results1 = self.pipeline(results1)
         results['target_data'] = results1
         
+        # qq2 = np.array(results['img'].data)
+        # qq2 = np.einsum('ijk->jki', qq2).copy()
+        # bb2 = np.array(results['gt_bboxes'].data[0]).astype('int')
+        # cv2.rectangle(qq2,(bb2[0],bb2[1]),(bb2[2],bb2[3]),(0,0,0.01),4)
+
         
         # print('\n','imagenet','\n')
         # print(idx)

@@ -25,9 +25,11 @@ img_norm_cfg = dict(
 # )
 
 train_pipeline = [
-    dict(type='Resize', img_scale=(400, 400), keep_ratio=False),         #########
+    # dict(type='Resize', img_scale=(500, 500), keep_ratio=True),
+    
+    # dict(type='Resize', img_scale=(500, 500), keep_ratio=True),         #########
     # dict(type='PixelAugPil', to_rgb=True),                              ########
-    dict(type='RandomFlip', flip_ratio=0.001),
+    dict(type='RandomFlip', flip_ratio=0),
     dict(type='Normalize', **img_norm_cfg),
     # dict(type='Pad', size_divisor=32),                                  #########
     dict(type='DefaultFormatBundle', to_tensor=True),
@@ -66,7 +68,8 @@ norm_cfg = dict(type='BN', requires_grad=True)
 model = dict(
     type='InsLocFPN',
     pretrained=None,
-    pool_with_gt=[False, True],  # for query, key encoder respectively
+    # pool_with_gt=[False, True],  # for query, key encoder respectively        ##############
+    pool_with_gt=[True, True],                                                  ##############
     drop_rpn_k=True,
     shuffle_data=['img', 'bbox'],
     num_levels=4,
@@ -91,6 +94,7 @@ model = dict(
         in_channels=[256, 512, 1024, 2048],
         out_channels=256,
         norm_cfg=norm_cfg,
+        # num_outs=5),                                ######
         num_outs=4),                               #????????
     rpn_head=dict(                                  #???????
         type='AnchorAugHead',
@@ -106,6 +110,7 @@ model = dict(
             type='SingleRoIExtractor',
             roi_layer=dict(type='RoIAlign', out_size=7, sample_num=0),
             num_extractor=4,
+            # num_extractor=4,
             out_channels=256,
             finest_scale=56,
             featmap_strides=[4, 8, 16, 32]),
