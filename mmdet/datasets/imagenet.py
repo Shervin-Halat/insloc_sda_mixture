@@ -19,7 +19,7 @@ import pickle                                    ########
 
 
 
-the_filename = '/mnt/e/Data/test/PackedGenerated(OneListPer)'               #######                             
+the_filename = '/mnt/c/Users/sherw/OneDrive/Desktop/PackedGenerated(OneListPer)'               #######                             
 # with open(the_filename, 'rb') as f:                                         #######
 #     packed_generated_images = pickle.load(f)                                       #######
 

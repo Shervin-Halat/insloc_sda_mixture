@@ -463,7 +463,7 @@ class InsLocFPN(BaseDetector):
             logits = torch.cat([l_pos, l_neg], dim=1)
             # apply temperature
             logits /= self.T
-            print(logits)
+            # print(logits)
             # labels: positive key indicators
             labels = torch.zeros(logits.shape[0], dtype=torch.long).cuda()
             # ce loss

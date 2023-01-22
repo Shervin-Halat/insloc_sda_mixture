@@ -59,6 +59,7 @@ data = dict(
         type=dataset_type,
         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file  ##############
         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
+        # ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
         ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
         img_prefix=data_root,
         pipeline=train_pipeline))
@@ -77,7 +78,7 @@ model = dict(
     box_replaced_with_gt=[True, True, True,
                           True],  # Means the box aug is only applied on P5    #??????
     # momentum_cfg=dict(dim=128, K=65536, m=0.999, T=0.2),                                                      ######################
-    momentum_cfg=dict(dim=128, K=6, m=0.999, T=0.2),
+    momentum_cfg=dict(dim=128, K=4, m=0.999, T=0.2),
     backbone=dict(
         type='ResNet',
         # depth=50,
@@ -149,10 +150,10 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='CosineAnealing', min_lr=0.0, by_epoch=True)
 # total_epochs = 200                                                                                ###########################################
-total_epochs = 2
-checkpoint_config = dict(interval=5)
+total_epochs = 100
+checkpoint_config = dict(interval=1)
 #log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])                               ############################
-log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(interval=5, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
