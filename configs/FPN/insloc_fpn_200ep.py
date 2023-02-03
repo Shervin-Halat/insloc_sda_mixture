@@ -3,7 +3,8 @@ dataset_type = 'ImageNetDataset'
 # data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample'  # data path  ####################
 # data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/test_sample/'
 # data_root = '/mnt/e/Data/test/Backgrounds'
-data_root = '/mnt/e/Data/test/PackedGenerated(OneListPer)'
+# data_root = '/mnt/e/Data/test/PackedGenerated(OneListPer)'
+data_root = '/mnt/c/Users/sherw/OneDrive/Desktop/PackedGenerated(OneListPer)'
 
 
 base_scale = (256, 256)
@@ -52,7 +53,7 @@ train_pipeline = [
 
 data = dict(
     # samples_per_gpu=32,                                                                                           ########################
-    samples_per_gpu=2,
+    samples_per_gpu=4,
     # workers_per_gpu=4,                                                                                               #######################
     workers_per_gpu=4,
     train=dict(
@@ -60,7 +61,8 @@ data = dict(
         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file  ##############
         # ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/SSL_Proj/Implementation/Dataset/Data_Temp/data_ann.txt',  # anno file
         # ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
-        ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
+        # ann_file='/mnt/e/Data/test/data_ann.txt',  # anno file
+        ann_file='/mnt/c/Users/sherw/OneDrive/Desktop/data_ann.txt',
         img_prefix=data_root,
         pipeline=train_pipeline))
 
@@ -73,10 +75,10 @@ model = dict(
     pool_with_gt=[True, True],                                                  ##############
     drop_rpn_k=True,
     shuffle_data=['img', 'bbox'],
-    num_levels=4,
-    level_loss_weights=[1.0, 1.0, 1.0, 1.0],
+    num_levels=5,
+    level_loss_weights=[1.0, 1.0, 1.0, 1.0, 1.0],
     box_replaced_with_gt=[True, True, True,
-                          True],  # Means the box aug is only applied on P5    #??????
+                          True, True],  # Means the box aug is only applied on P5    #??????
     # momentum_cfg=dict(dim=128, K=65536, m=0.999, T=0.2),                                                      ######################
     momentum_cfg=dict(dim=128, K=4, m=0.999, T=0.2),
     backbone=dict(
@@ -95,14 +97,16 @@ model = dict(
         in_channels=[256, 512, 1024, 2048],
         out_channels=256,
         norm_cfg=norm_cfg,
-        # num_outs=5),                                ######
-        num_outs=4),                               #????????
+        num_outs=5),                                ######
+        # num_outs=4),                               #????????
     rpn_head=dict(                                  #???????
         type='AnchorAugHead',
         anchor_generator=dict(
             type='AnchorGenerator',
-            scales=[2, 4, 8, 16],
+            scales=[2, 4, 8, 16, 32],
+            # scales=[8],
             ratios=[0.5, 0.75, 1.0, 1.5, 2.0],
+            # strides=[4, 8, 16, 32, 64]),        
             strides=[16]),
     ),
     roi_head=dict(
@@ -110,11 +114,11 @@ model = dict(
         bbox_roi_extractor=dict(
             type='SingleRoIExtractor',
             roi_layer=dict(type='RoIAlign', out_size=7, sample_num=0),
-            num_extractor=4,
             # num_extractor=4,
+            num_extractor=5,
             out_channels=256,
             finest_scale=56,
-            featmap_strides=[4, 8, 16, 32]),
+            featmap_strides=[4, 8, 16, 32, 64]),
         bbox_head=dict(
             type='ConvFCBBoxInsClsHead',
             num_shared_convs=4,
@@ -150,10 +154,10 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='CosineAnealing', min_lr=0.0, by_epoch=True)
 # total_epochs = 200                                                                                ###########################################
-total_epochs = 100
+total_epochs = 40
 checkpoint_config = dict(interval=1)
 #log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])                               ############################
-log_config = dict(interval=5, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(interval=1, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None

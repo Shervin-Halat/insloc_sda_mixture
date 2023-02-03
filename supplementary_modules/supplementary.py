@@ -20,7 +20,7 @@ from mmdet.ops.context_block import ContextBlock        ###################
 class channel_attention(nn.Module):
     def __init__(self):
         super(channel_attention,self).__init__()
-        M = 4                   ###########################
+        M = 5                   ###########################
         d = 128
         self.gap = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Sequential(nn.Conv2d(256, d, kernel_size=1, stride=1, bias=False),
@@ -47,7 +47,7 @@ class channel_attention(nn.Module):
 class spatial_attention(nn.Module):
     def __init__(self, kernel_size=7):
         super(spatial_attention,self).__init__()
-        M = 4                               ###########################
+        M = 5                               ###########################
         d = 128
         padding = 3 if kernel_size == 7 else 1
         self.conv = nn.ModuleList([])

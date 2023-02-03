@@ -17,22 +17,22 @@ from collections import Counter                                           ######
 
 num_classes = 12                                                      ###############
 
-'''
-    def enhance_feature(self,inputs):                           
-        output = []
-        output_0 = self.selective_attention_0(inputs)
-        output_1 = self.selective_attention_1(inputs)
-        output_2 = self.selective_attention_2(inputs)
-        output_3 = self.selective_attention_3(inputs)
-        output_4 = self.selective_attention_4(inputs)
-        output.append(output_0)
-        output.append(output_1)
-        output.append(output_2)
-        output.append(output_3)
-        output.append(output_4)
-        
-        return tuple(output)
-'''
+
+# def enhance_feature(self,inputs):                           
+#     output = []
+#     output_0 = self.selective_attention_0(inputs)
+#     output_1 = self.selective_attention_1(inputs)
+#     output_2 = self.selective_attention_2(inputs)
+#     output_3 = self.selective_attention_3(inputs)
+#     output_4 = self.selective_attention_4(inputs)
+#     output.append(output_0)
+#     output.append(output_1)
+#     output.append(output_2)
+#     output.append(output_3)
+#     output.append(output_4)
+    
+#     return tuple(output)
+
 
 @torch.no_grad()
 def concat_all_gather(tensor):
@@ -98,27 +98,27 @@ class InsLocFPN(BaseDetector):
 
 ###############################################################################################
 
-    #     self.selective_attention_0 = selective_attention(0)         ########
-    #     self.selective_attention_1 = selective_attention(1)         ########
-    #     self.selective_attention_2 = selective_attention(2)         ########
-    #     self.selective_attention_3 = selective_attention(3)         ########
-    #     # self.selective_attention_4 = selective_attention(4)         ########
+        self.selective_attention_0 = selective_attention(0)         ########
+        self.selective_attention_1 = selective_attention(1)         ########
+        self.selective_attention_2 = selective_attention(2)         ########
+        self.selective_attention_3 = selective_attention(3)         ########
+        self.selective_attention_4 = selective_attention(4)         ########
 
 
-    # def enhance_feature(self,inputs):                               ########
-    #     output = []
-    #     output_0 = self.selective_attention_0(inputs)
-    #     output_1 = self.selective_attention_1(inputs)
-    #     output_2 = self.selective_attention_2(inputs)
-    #     output_3 = self.selective_attention_3(inputs)
-    #     # output_4 = self.selective_attention_4(inputs)
-    #     output.append(output_0)
-    #     output.append(output_1)
-    #     output.append(output_2)
-    #     output.append(output_3)
-    #     # output.append(output_4)
+    def enhance_feature(self,inputs):                               ########
+        output = []
+        output_0 = self.selective_attention_0(inputs)
+        output_1 = self.selective_attention_1(inputs)
+        output_2 = self.selective_attention_2(inputs)
+        output_3 = self.selective_attention_3(inputs)
+        output_4 = self.selective_attention_4(inputs)
+        output.append(output_0)
+        output.append(output_1)
+        output.append(output_2)
+        output.append(output_3)
+        output.append(output_4)
         
-    #     return tuple(output)
+        return tuple(output)
 
 ###############################################################################################
 
@@ -276,11 +276,10 @@ class InsLocFPN(BaseDetector):
     ):
         losses = dict()
         x = backbone(img)
-
         if neck is not None:
             x = neck(x)
 
-        # x = self.enhance_feature(x)                                       #############################
+        x = self.enhance_feature(x)                                       #############################
 
         if pool_with_gt:
             proposal_list = gt_bboxes
@@ -295,7 +294,8 @@ class InsLocFPN(BaseDetector):
             # implement your strategy for getting 2nd stage bboxes
             proposal_list = self.get_stage2_bboxes(proposal_list, gt_bboxes)
 
-        if self.box_replaced_with_gt is not None and query_encoder:
+        # if self.box_replaced_with_gt is not None and query_encoder:
+        if self.box_replaced_with_gt is not None:
             box_replaced_with_gt = self.box_replaced_with_gt
         else:
             box_replaced_with_gt = None
@@ -358,6 +358,7 @@ class InsLocFPN(BaseDetector):
 
         num_feat_levels = logits_q.shape[0] // (
             batch_size * self.num_pos_per_instance)
+        print(num_feat_levels,self.num_levels)
         assert (self.num_levels == num_feat_levels)
         logits_q = logits_q.view(batch_size * self.num_pos_per_instance,
                                  num_feat_levels, -1)
